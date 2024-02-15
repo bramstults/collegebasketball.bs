@@ -30,17 +30,17 @@ team_Record <- function(data, team) {
   
   temp_Tibble <- data |> 
     mutate(Result = case_when(
-      Team_1 == team & Margin > 0 ~ 1,
-      Team_1 == team & Margin < 0 ~ 0,
-      Team_2 == team & Margin < 0 ~ 1,
-      Team_2 == team & Margin > 0 ~ 0)) |> 
+      Home_Team == team & Margin > 0 ~ 1,
+      Home_Team == team & Margin < 0 ~ 0,
+      Visiting_Team == team & Margin < 0 ~ 1,
+      Visiting_Team == team & Margin > 0 ~ 0)) |>
     mutate(WinLoss = case_when(
       Result == 1 ~ 'Win',
       Result == 0 ~ 'Loss'))
   
   #creating summary tibble
   result_Tibble <-  temp_Tibble |> 
-    filter(Team_1 == team | Team_2 == team) |> 
+    filter(Home_Team == team | Visiting_Team == team) |> 
     summarize(
       Team = team,
       Wins = sum(WinLoss == 'Win'),
