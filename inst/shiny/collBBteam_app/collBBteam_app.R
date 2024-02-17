@@ -28,13 +28,30 @@ ui <- fluidPage(
       #selectInput('team_select', 'Select Home or Visiting Team:', choices = c('Home_Team', 'Visiting_Team')),
       
       uiOutput("team_search_ui"),
-      tableOutput('teamRecord'),
       actionButton("confirm_selection", "Please Click to Confirm")
       
     ),
     
     mainPanel(
+      tableOutput('teamRecord'),
+      plotOutput('thePlot'),
+      
+      tags$head(
+        tags$style(
+          '.top-text {
+            position: absolute;
+            top: 10%; 
+            left: 50%;
+            transform: translateX(-50%);
+          }'
+        )
+      ),
+      div(class = "top-text", h3(textOutput('plot_Unmatched'))
+      )
+      
+      
     )
+  
   )
 )
 
@@ -45,24 +62,52 @@ server <- function(input, output, session) {
   })
   
   observe({
-    # team_column <- switch(input$team_select,
-    #                       "Home_Team" = cbbga24$Home_Team,
-    #                       "Visiting_Team" = cbbga24$Visiting_Team)
     updateSelectizeInput(session, 'team_search', choices = all_teams_df$Team)
   })
   
-  selected_team <- reactive({
-    input$confirm_selection
-    isolate(input$team_search)
-  })
+  
+  output$teamRecord <- function(){ 
+    if (input$team_search %in% all_teams_df[['Team']]) {
+    req(input$confirm_selection)
+    collegeBasketball.bs::team_Record(cbbga24, input$team_search) |> 
+      knitr::kable(format = "html") |>
+      kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+    }
+  }
   
   
-  output$teamRecord <- renderTable({ 
+  output$thePlot <- renderPlot({
     
-    team_Record(cbbga24, selected_team()) |> 
-      knitr::kable() 
-    })
-  
+    if (input$team_search %in% all_teams_df[['Team']]) {
+      req(input$confirm_selection)
+      
+      # wins and losses
+      result <- collegeBasketball.bs::team_Record(cbbga24, input$team_search)
+      wins <- result$Wins
+      losses <- result$Losses
+      
+      # bar plot
+      ggplot(data = data.frame(Result = c("Wins", "Losses"), Count = c(wins, losses)), 
+             aes(x = Result, y = Count)) +
+        geom_bar(stat = "identity", fill = c("slategray3", "slategray")) +
+        labs(x = "Outcome", y = "Count", title = "Wins vs Losses")+
+        theme(axis.title = element_text(size = 14),
+              legend.title = element_text(size = 14),
+              plot.title = element_text(size = 18, face = "bold"),
+              panel.background = element_rect(fill = 'ivory', 
+                                              color = 'navajowhite3', size=2,
+                                              linetype = "solid")) 
+    } else {
+      
+        output$plot_Unmatched <- renderText({
+          if ( !(input$team_search %in% all_teams_df[['Team']]) ) {
+            paste("You have not typed an available team's name, 
+              please type a few letters of the teams name and select from list")
+          }
+        })
+      
+      }
+  })
   
   
 }

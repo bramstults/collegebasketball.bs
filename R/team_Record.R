@@ -33,19 +33,18 @@ team_Record <- function(data, team) {
       Home_Team == team & Margin > 0 ~ 1,
       Home_Team == team & Margin < 0 ~ 0,
       Visiting_Team == team & Margin < 0 ~ 1,
-      Visiting_Team == team & Margin > 0 ~ 0)) |>
-    mutate(WinLoss = case_when(
-      Result == 1 ~ 'Win',
-      Result == 0 ~ 'Loss'))
+      Visiting_Team == team & Margin > 0 ~ 0))|>
+      
+      mutate(Result = factor(Result, levels = c(0, 1)))
   
   #creating summary tibble
   result_Tibble <-  temp_Tibble |> 
     filter(Home_Team == team | Visiting_Team == team) |> 
     summarize(
       Team = team,
-      Wins = sum(WinLoss == 'Win'),
-      Losses = sum(WinLoss == 'Loss'),
-      Percent_Win = round(Wins/(Wins+Losses)*100,2) %>% paste0("%"))
+      Wins = sum(Result == '1'),
+      Losses = sum(Result == '0'),
+      Percent_Win = round(Wins/(Wins+Losses)*100,2))
   
   return(result_Tibble)
 }
