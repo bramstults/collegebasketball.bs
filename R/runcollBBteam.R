@@ -7,9 +7,9 @@
 #' @export
 
 runcollBBTeam <- function() {
-  appDir <- system.file("shiny", "collBBteam_app", package = "collegebasketball.bs")
+  appDir <- system.file("shiny", "collBBteam_app", package = "collegeBasketball.bs")
   if (appDir == "") {
-    stop("Could not find example directory. Try re-installing `collegebasketball.bs`.", 
+    stop("Could not find example directory. Try re-installing `collegeBasketball.bs`.", 
          call. = FALSE)
   }
   
